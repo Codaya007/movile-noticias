@@ -1,9 +1,11 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:practica_04/screens/update_comment.dart';
 import 'package:practica_04/screens/widgets/Menu.dart';
 import 'package:practica_04/utils/api_endpoints.dart';
-import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyNewsView extends StatefulWidget {
@@ -53,11 +55,16 @@ class _NewsViewState extends State<MyNewsView> {
       final SharedPreferences? prefs = await _prefs;
       final String? token = prefs?.getString('token');
       final int requestedPage = page ?? _currentPage;
-      final responseComments = await http.get(Uri.parse('${ApiEndPoints.baseUrl}${ApiEndPoints.crudsEndpoints.comments}/me?page=$requestedPage&limit=10&status=true'), headers: {
-        'Content-type': "application/json", 'Authorization': 'Bearer $token'
-      });
+      final responseComments = await http.get(
+          Uri.parse(
+              '${ApiEndPoints.baseUrl}${ApiEndPoints.crudsEndpoints.comments}/me?page=$requestedPage&limit=10&status=true'),
+          headers: {
+            'Content-type': "application/json",
+            'Authorization': 'Bearer $token'
+          });
       if (responseComments.statusCode == 200) {
-        final Map<String, dynamic> commentsData = json.decode(responseComments.body);
+        final Map<String, dynamic> commentsData =
+            json.decode(responseComments.body);
         setState(() {
           if (page == null) {
             _comments.clear();
@@ -144,35 +151,50 @@ class _NewsViewState extends State<MyNewsView> {
             _isLoading
                 ? Center(child: CircularProgressIndicator())
                 : Container(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Comentarios:',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Comentarios:',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8.0),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _comments.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index < _comments.length) {
+                              return ListTile(
+                                title: Text(_comments[index]['body'] ?? ''),
+                                subtitle: Text(
+                                    'Escrito por: ${_comments[index]['user'] != null ? _comments[index]['user']['names'] + ' ' + _comments[index]['user']['lastnames'] : 'Desconocido'}'),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    // Agregar lógica para editar el comentario
+                                    // Redirigir a la página de edición de comentario
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => EditCommentPage(
+                                              commentId: _comments[index]
+                                                  ['id'])),
+                                    );
+                                  },
+                                ),
+                              );
+                            } else {
+                              return _buildLoadMoreButton();
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 8.0),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _comments.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index < _comments.length) {
-                        return ListTile(
-                          title: Text(_comments[index]['body'] ?? ''),
-                          subtitle: Text('Escrito por: ${_comments[index]['user'] != null ? _comments[index]['user']['names'] + ' ' + _comments[index]['user']['lastnames'] : 'Desconocido'}'),
-                        );
-                      } else {
-                        return _buildLoadMoreButton();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
