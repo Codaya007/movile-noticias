@@ -1,10 +1,12 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:practica_04/screens/update_profile.dart';
 import 'package:practica_04/screens/widgets/Menu.dart';
 import 'package:practica_04/utils/api_endpoints.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:get/get.dart';
 
 class UserProfileView extends StatefulWidget {
   const UserProfileView({Key? key}) : super(key: key);
@@ -27,11 +29,16 @@ class _UserProfileViewState extends State<UserProfileView> {
     try {
       final SharedPreferences? prefs = await _prefs;
       final String? token = prefs?.getString('token');
-      var headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'};
-      final response = await http.get(Uri.parse('${ApiEndPoints.baseUrl}/users/me'), headers: headers);
+      var headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      };
+      final response = await http
+          .get(Uri.parse('${ApiEndPoints.baseUrl}/users/me'), headers: headers);
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> userData = json.decode(response.body)['results'];
+        final Map<String, dynamic> userData =
+            json.decode(response.body)['results'];
         setState(() {
           _userData = userData;
         });
@@ -77,6 +84,11 @@ class _UserProfileViewState extends State<UserProfileView> {
             ),
             SizedBox(height: 8.0),
             Text(
+              'Email: ${_userData['account']['email']}',
+              style: TextStyle(fontSize: 18.0),
+            ),
+            SizedBox(height: 8.0),
+            Text(
               'Dirección: ${_userData['address']}',
               style: TextStyle(fontSize: 18.0),
             ),
@@ -97,7 +109,7 @@ class _UserProfileViewState extends State<UserProfileView> {
             ),
             ElevatedButton(
               onPressed: () {
-                // Agregar lógica para añadir comentario
+                Get.off(UpdateUserProfile(newsId: _userData['id']));
               },
               style: ElevatedButton.styleFrom(
                 // primary: Colors.pinkAccent,

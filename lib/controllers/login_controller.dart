@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'package:practica_04/screens/home.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:practica_04/utils/api_endpoints.dart';
 import 'package:http/http.dart' as http;
+import 'package:practica_04/screens/home.dart';
+import 'package:practica_04/utils/api_endpoints.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginController extends GetxController {
@@ -21,7 +22,7 @@ class LoginController extends GetxController {
         'password': passwordController.text
       };
       http.Response response =
-      await http.post(url, body: jsonEncode(body), headers: headers);
+          await http.post(url, body: jsonEncode(body), headers: headers);
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
@@ -30,11 +31,13 @@ class LoginController extends GetxController {
 
           final SharedPreferences? prefs = await _prefs;
           await prefs?.setString('token', token);
+          await prefs?.setString(
+              'role', json['results']['user']['role']['name']);
 
           emailController.clear();
           passwordController.clear();
           Get.off(const HomeScreen());
-        } else{
+        } else {
           throw jsonDecode(response.body)['msg'];
         }
       } else {
