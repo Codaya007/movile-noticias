@@ -1,11 +1,13 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:practica_04/screens/comment_locations.dart';
 import 'package:practica_04/screens/create_comment.dart';
-import 'package:practica_04/screens/map.dart';
 import 'package:practica_04/screens/widgets/Menu.dart';
 import 'package:practica_04/utils/api_endpoints.dart';
-import 'package:get/get.dart';
+import 'package:practica_04/utils/index.dart';
 
 class NewsView extends StatefulWidget {
   final String newsId;
@@ -34,7 +36,10 @@ class _NewsViewState extends State<NewsView> {
 
   Future<void> _getNewsAndComments() async {
     try {
-      final responseNews = await http.get(Uri.parse(ApiEndPoints.baseUrl + ApiEndPoints.crudsEndpoints.news + "/" + widget.newsId));
+      final responseNews = await http.get(Uri.parse(ApiEndPoints.baseUrl +
+          ApiEndPoints.crudsEndpoints.news +
+          "/" +
+          widget.newsId));
       if (responseNews.statusCode == 200) {
         final Map<String, dynamic> newsData = json.decode(responseNews.body);
         setState(() {
@@ -63,9 +68,11 @@ class _NewsViewState extends State<NewsView> {
   Future<void> _fetchComments({int? page}) async {
     try {
       final int requestedPage = page ?? _currentPage;
-      final responseComments = await http.get(Uri.parse('${ApiEndPoints.baseUrl}${ApiEndPoints.crudsEndpoints.comments}?newsId=${widget.newsId}&page=$requestedPage&limit=10&status=true'));
+      final responseComments = await http.get(Uri.parse(
+          '${ApiEndPoints.baseUrl}${ApiEndPoints.crudsEndpoints.comments}?newsId=${widget.newsId}&page=$requestedPage&limit=10&status=true'));
       if (responseComments.statusCode == 200) {
-        final Map<String, dynamic> commentsData = json.decode(responseComments.body);
+        final Map<String, dynamic> commentsData =
+            json.decode(responseComments.body);
         setState(() {
           if (page == null) {
             _comments.clear();
@@ -172,18 +179,22 @@ class _NewsViewState extends State<NewsView> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: Image.network(
-                      _news['photo'] ?? '',
+                      _news['photo'].toString().isNotEmpty
+                          ? Utils.replaceBaseUrl(_news['photo'])
+                          : '',
                       height: 250.0,
                       width: 250.0,
                       fit: BoxFit.cover,
-                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
                         if (loadingProgress == null) {
                           return child;
                         } else {
                           return CircularProgressIndicator();
                         }
                       },
-                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                      errorBuilder: (BuildContext context, Object exception,
+                          StackTrace? stackTrace) {
                         print('Error loading image: $exception');
                         return Text('Error al cargar la imagen');
                       },
@@ -225,35 +236,36 @@ class _NewsViewState extends State<NewsView> {
             _isLoading
                 ? Center(child: CircularProgressIndicator())
                 : Container(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Comentarios:',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Comentarios:',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8.0),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _comments.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index < _comments.length) {
+                              return ListTile(
+                                title: Text(_comments[index]['body'] ?? ''),
+                                subtitle: Text(
+                                    'Escrito por: ${_comments[index]['user'] != null ? _comments[index]['user']['names'] + ' ' + _comments[index]['user']['lastnames'] : 'Desconocido'}'),
+                              );
+                            } else {
+                              return _buildLoadMoreButton();
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 8.0),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _comments.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index < _comments.length) {
-                        return ListTile(
-                          title: Text(_comments[index]['body'] ?? ''),
-                          subtitle: Text('Escrito por: ${_comments[index]['user'] != null ? _comments[index]['user']['names'] + ' ' + _comments[index]['user']['lastnames'] : 'Desconocido'}'),
-                        );
-                      } else {
-                        return _buildLoadMoreButton();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),

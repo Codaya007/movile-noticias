@@ -3,6 +3,10 @@
         android:label="practica_04"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBXxgAtrjw1i8KiGF931Zwpt-Yjo9qzFww"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

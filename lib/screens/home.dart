@@ -7,6 +7,7 @@ import 'package:practica_04/screens/auth.dart';
 import 'package:practica_04/screens/new.dart';
 import 'package:practica_04/screens/widgets/Menu.dart';
 import 'package:practica_04/utils/api_endpoints.dart';
+import 'package:practica_04/utils/index.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -27,14 +28,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _getNews() async {
-    try{
+    try {
       final SharedPreferences? prefs = await _prefs;
       final String? token = prefs?.getString('token');
 
-      final response = await http.get( Uri.parse(
-          ApiEndPoints.baseUrl + ApiEndPoints.crudsEndpoints.news + "?status=true"), headers: {
-        'Authorization': 'Bearer $token',
-      });
+      final response = await http.get(
+          Uri.parse(ApiEndPoints.baseUrl +
+              ApiEndPoints.crudsEndpoints.news +
+              "?status=true"),
+          headers: {
+            'Authorization': 'Bearer $token',
+          });
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -42,9 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
           _newsList = data['results'];
         });
       } else {
-        throw jsonDecode(response.body)["msg"] ?? "No se pudieron obtener las noticias :(";
+        throw jsonDecode(response.body)["msg"] ??
+            "No se pudieron obtener las noticias :(";
       }
-    }catch(error) {
+    } catch (error) {
       // Manejar error en la solicitud HTTP
       showDialog(
           context: Get.context!,
@@ -91,7 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
-            final newsItem = _newsList[index - 1]; // Restar 1 porque el primer elemento es el título "Noticias"
+            final newsItem = _newsList[index -
+                1]; // Restar 1 porque el primer elemento es el título "Noticias"
             return Container(
               margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
               padding: EdgeInsets.all(16.0),
@@ -106,24 +112,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: Image.network(
-                      newsItem['photo'],
+                      newsItem['photo'].toString().isNotEmpty
+                          ? Utils.replaceBaseUrl(newsItem['photo'])
+                          : "",
                       height: 100.0,
                       width: 100.0,
                       fit: BoxFit.cover,
-                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
                         if (loadingProgress == null) {
                           return child;
                         } else {
                           return CircularProgressIndicator(); // Mostrar un indicador de carga mientras se carga la imagen
                         }
                       },
-                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                      errorBuilder: (BuildContext context, Object exception,
+                          StackTrace? stackTrace) {
                         print('Error loading image: $exception');
-                        return Text('Error al cargar la imagen'); // Mostrar un mensaje de error si no se puede cargar la imagen
+                        return Text(
+                            'Error al cargar la imagen'); // Mostrar un mensaje de error si no se puede cargar la imagen
                       },
                     ),
                   ),
-                  SizedBox(width: 16.0), // Espacio entre la imagen y el contenido de la noticia
+                  SizedBox(
+                      width:
+                          16.0), // Espacio entre la imagen y el contenido de la noticia
                   // Contenido de la noticia a la derecha
                   Expanded(
                     child: Column(
@@ -164,7 +177,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.0), // Bordes semi redondeados
+                                borderRadius: BorderRadius.circular(
+                                    12.0), // Bordes semi redondeados
                               ),
                             ),
                             child: Text(
@@ -179,7 +193,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             );
-
           },
         ),
       ),
